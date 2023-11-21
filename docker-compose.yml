@@ -79,8 +79,60 @@ services:
     ports:
       - '${AUTH_API_PORT}:${AUTH_API_PORT}'
 
+  # Ref: https://www.elastic.co/guide/en/elasticsearch/reference/8.7/docker.html
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-password}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - 127.0.0.1:9200:9200
+
+  # Ref: https://www.elastic.co/guide/en/kibana/8.7/docker.html
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.7.0
+    container_name: kibana
+    ports:
+      - 127.0.0.1:5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
+      # Ref: https://www.elastic.co/guide/en/kibana/current/xpack-security-secure-saved-objects.html#xpack-security-secure-saved-objects
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: ${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY}
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.1
+    container_name: filebeat
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: ${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
+    volumes:
+      - ./db/filebeat.yml:/usr/share/filebeat/filebeat.yml  # Mount Filebeat configuration
+    depends_on:
+      - elasticsearch  # Ensure that Elasticsearch is started before Filebeat
+      - orion_db # should add dependency
+
 volumes:
+  es-data:
+    driver: local
+  cache:
+    driver: local
+  data:
+    driver: local
   orion_db_data:
+    driver: local
 
 networks:
   default:

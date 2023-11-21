@@ -1,0 +1,13 @@
+filebeat.modules:
+  - module: postgresql
+    log:
+      enabled: true
+      var.paths: ['/var/log/postgresql/*.log']
+
+output.elasticsearch:
+  hosts: '[elasticsearch:9200]'
+  username: 'elastic'
+  password: 'password'
+
+setup.template.name: 'filebeat'
+setup.template.pattern: 'filebeat-*'
