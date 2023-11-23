@@ -26,3 +26,9 @@ async function initGlobalEm() {
 }
 
 export const globalEm = initGlobalEm()
+
+export const closeConnectionAndThrow = async (err: Error): Promise<never> => {
+  globalEmLogger.error(`Error during database connection initialization: ${String(err)}`)
+  await source.destroy()
+  throw err
+}

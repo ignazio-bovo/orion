@@ -1,6 +1,7 @@
 import { MiddlewareFn } from 'type-graphql'
 import { OperatorPermission } from '../../model'
 import { Context } from '../check'
+import { closeConnectionAndThrow } from '../../utils/globalEm'
 
 export const OperatorOnly = (
   ...requiredPermissions: OperatorPermission[]
@@ -8,7 +9,7 @@ export const OperatorOnly = (
   return async ({ context }, next) => {
     // Ensure the user exists in the context
     if (!context?.user) {
-      throw new Error('Unauthorized: User required')
+      await closeConnectionAndThrow(new Error('Unauthorized: User required'))
     }
 
     // Allow root operators to bypass permission checks
@@ -25,8 +26,10 @@ export const OperatorOnly = (
       requiredPermissions.some((permission) => userPermissions.includes(permission))
 
     if (!hasPermission) {
-      throw new Error(
-        `Unauthorized: User ${context.user.id} does not have the required permissions: ${requiredPermissions}`
+      await closeConnectionAndThrow(
+        new Error(
+          `Unauthorized: User ${context.user.id} does not have the required permissions: ${requiredPermissions}`
+        )
       )
     }
 
@@ -36,7 +39,7 @@ export const OperatorOnly = (
 
 export const AccountOnly: MiddlewareFn<Context> = async ({ context }, next) => {
   if (!context?.account) {
-    throw new Error('Unauthorized: Account required')
+    await closeConnectionAndThrow(new Error('Unauthorized: Account required'))
   }
 
   return next()
@@ -44,7 +47,7 @@ export const AccountOnly: MiddlewareFn<Context> = async ({ context }, next) => {
 
 export const UserOnly: MiddlewareFn<Context> = async ({ context }, next) => {
   if (!context?.user) {
-    throw new Error('Unauthorized: User required')
+    await closeConnectionAndThrow(new Error('Unauthorized: User required'))
   }
 
   return next()

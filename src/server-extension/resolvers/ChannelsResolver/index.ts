@@ -28,6 +28,7 @@ import { model } from '../model'
 import { Context } from '../../check'
 import { uniqueId } from '../../../utils/crypto'
 import { AccountOnly, UserOnly } from '../middleware'
+import { closeConnectionAndThrow } from '../../../utils/globalEm'
 
 @Resolver()
 export class ChannelsResolver {
@@ -173,7 +174,7 @@ export class ChannelsResolver {
         lock: { mode: 'pessimistic_write' },
       })
       if (!channel) {
-        throw new Error(`Channel by id ${channelId} not found!`)
+        await closeConnectionAndThrow(new Error(`Channel by id ${channelId} not found!`))
       }
       // Check whether the user already follows the channel
       const existingFollow = await em.findOne(ChannelFollow, {
@@ -223,7 +224,7 @@ export class ChannelsResolver {
         lock: { mode: 'pessimistic_write' },
       })
       if (!channel) {
-        throw new Error(`Channel by id ${channelId} not found!`)
+        await closeConnectionAndThrow(new Error(`Channel by id ${channelId} not found!`))
       }
       // Check if there's a follow matching the request data
       const follow = await em.findOne(ChannelFollow, {
@@ -256,7 +257,7 @@ export class ChannelsResolver {
         where: { id: channelId },
       })
       if (!channel) {
-        throw new Error(`Channel by id ${channelId} not found!`)
+        await closeConnectionAndThrow(new Error(`Channel by id ${channelId} not found!`))
       }
       // Check whether the user already reported the channel
       const existingReport = await em.findOne(Report, {

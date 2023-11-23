@@ -55,6 +55,7 @@ import {
   VideoWeights,
 } from './types'
 import { processCommentsCensorshipStatusUpdate } from './utils'
+import { closeConnectionAndThrow } from '../../../utils/globalEm'
 
 @Resolver()
 export class AdminResolver {
@@ -69,7 +70,7 @@ export class AdminResolver {
     const em = await this.em()
     const user = await em.findOne(User, { where: { id: args.userId } })
     if (!user) {
-      throw new Error('User not found')
+      await closeConnectionAndThrow(new Error('User not found'))
     }
 
     // Add only new permissions that the user doesn't have yet
@@ -87,7 +88,7 @@ export class AdminResolver {
     const em = await this.em()
     const user = await em.findOne(User, { where: { id: args.userId } })
     if (!user) {
-      throw new Error('User not found')
+      await closeConnectionAndThrow(new Error('User not found'))
     }
 
     user.permissions = (user.permissions || []).filter((perm) => !args.permissions.includes(perm))
@@ -400,7 +401,7 @@ export class AdminResolver {
   ) {
     const em = await this.em()
     if (!isHex(assets) || !isHex(rawAction)) {
-      throw new Error('One of input is not hex: assets, rawAction')
+      await closeConnectionAndThrow(new Error('One of input is not hex: assets, rawAction'))
     }
 
     const message = generateAppActionCommitment(

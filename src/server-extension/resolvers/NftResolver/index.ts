@@ -13,6 +13,7 @@ import { ListQuery } from '@subsquid/openreader/lib/sql/query'
 import { isObject } from 'lodash'
 import { has } from '../../../utils/misc'
 import { uniqueId } from '../../../utils/crypto'
+import { closeConnectionAndThrow } from '../../../utils/globalEm'
 
 @Resolver()
 export class NftResolver {
@@ -88,7 +89,7 @@ export class NftResolver {
       })
 
       if (!nft) {
-        throw new Error(`NFT with id ${nftId} not found!`)
+        await closeConnectionAndThrow(new Error(`NFT with id ${nftId} not found!`))
       }
 
       const existingRequest = await em.findOne(NftFeaturingRequest, {

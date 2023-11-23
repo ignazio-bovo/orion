@@ -37,6 +37,7 @@ import { has } from '../../../utils/misc'
 import { videoRelevanceManager } from '../../../mappings/utils'
 import { uniqueId } from '../../../utils/crypto'
 import { UserOnly } from '../middleware'
+import { closeConnectionAndThrow } from '../../../utils/globalEm'
 
 @Resolver()
 export class VideosResolver {
@@ -55,13 +56,15 @@ export class VideosResolver {
     const edgeType = 'VideoEdge'
 
     if (args.limit > 1000) {
-      throw new Error('The limit cannot exceed 1000')
+      await closeConnectionAndThrow(new Error('The limit cannot exceed 1000'))
     }
 
     // Validation based on '@subsquid/openreader/src/opencrud/schema.ts'
     const orderByArg = ensureArray(args.orderBy)
     if (orderByArg.length === 0) {
-      throw new UserInputError('orderBy argument is required for connection')
+      await closeConnectionAndThrow(
+        new UserInputError('orderBy argument is required for connection')
+      )
     }
 
     const req: RelayConnectionRequest<AnyFields> = {
@@ -71,7 +74,9 @@ export class VideosResolver {
 
     if (args.first !== null && args.first !== undefined) {
       if (args.first < 0) {
-        throw new UserInputError("'first' argument of connection can't be less than 0")
+        await closeConnectionAndThrow(
+          new UserInputError("'first' argument of connection can't be less than 0")
+        )
       } else {
         req.first = args.first
       }
@@ -79,7 +84,7 @@ export class VideosResolver {
 
     if (args.after !== null && args.after !== undefined) {
       if (decodeRelayConnectionCursor(args.after) == null) {
-        throw new UserInputError(`invalid cursor value: ${args.after}`)
+        await closeConnectionAndThrow(new UserInputError(`invalid cursor value: ${args.after}`))
       } else {
         req.after = args.after
       }
@@ -206,7 +211,7 @@ export class VideosResolver {
         },
       })
       if (!video) {
-        throw new Error(`Video by id ${videoId} does not exist`)
+        await closeConnectionAndThrow(new Error(`Video by id ${videoId} does not exist`))
       }
       // See if there is already a recent view of this video by this user
       const timeLimitInSeconds = await config.get(ConfigVariable.VideoViewPerUserTimeLimit, em)
@@ -267,7 +272,7 @@ export class VideosResolver {
         relations: { channel: true },
       })
       if (!video) {
-        throw new Error(`Video by id ${videoId} not found!`)
+        await closeConnectionAndThrow(new Error(`Video by id ${videoId} not found!`))
       }
       // Check if the user has already reported this video
       const existingReport = await em.findOne(Report, {

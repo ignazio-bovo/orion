@@ -6,7 +6,7 @@ import {
   DistributionBucketOperatorStatus,
 } from '../../../model'
 import _ from 'lodash'
-import { globalEm } from '../../../utils/globalEm'
+import { closeConnectionAndThrow, globalEm } from '../../../utils/globalEm'
 import { performance } from 'perf_hooks'
 import urljoin from 'url-join'
 import { Context } from '@subsquid/openreader/lib/context'
@@ -251,8 +251,10 @@ export class AssetsResolver {
   @FieldResolver(() => [String])
   async resolvedUrls(@Root() object: StorageDataObject, @Ctx() ctx: Context): Promise<string[]> {
     if (!object.storageBag) {
-      throw new Error(
-        'incorrect query: to use resolvedUrls make sure to add storageBag.id into query for StorageDataObject'
+      await closeConnectionAndThrow(
+        new Error(
+          'incorrect query: to use resolvedUrls make sure to add storageBag.id into query for StorageDataObject'
+        )
       )
     }
     const clientLoc = await getClientLoc(ctx)
