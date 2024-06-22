@@ -84,8 +84,7 @@ services:
 
 volumes:
   orion_db_data:
-
-networks:
-  default:
-    external:
-      name: joystream_default
+# networks:
+#   default:
+#     external:
+#       name: joystream_default

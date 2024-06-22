@@ -1,0 +1,17 @@
+type Bounty @entity @schema(name: "admin") {
+  id: ID!
+  createdAt: DateTime!
+  maxPayoutUSD: Int!
+  title: String!
+  description: String!
+  coverImageLink: String
+  expirationDate: DateTime!
+  talkingPointsText: String!
+  activatedBounties: [ActivatedBounty!]! @derivedFrom(field: "bounty")
+}
+
+type ActivatedBounty @entity {
+  bounty: Bounty!
+  channelOwner: Channel!
+  key: String
+}
