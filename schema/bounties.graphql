@@ -11,7 +11,9 @@ type Bounty @entity @schema(name: "admin") {
 }
 
 type ActivatedBounty @entity {
+  id: ID!
   bounty: Bounty!
   channelOwner: Channel!
   key: String
+  completed: Boolean!
 }
