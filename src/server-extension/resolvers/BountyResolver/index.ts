@@ -10,6 +10,7 @@ import {
   AddBountyArgs,
   BountyOperationResult,
   GetActivatedBountiesForChannel,
+  GetAvailableBountiesResult,
 } from './types'
 import { v4 as uuidv4 } from 'uuid'
 import { Context } from '../../check'
@@ -123,7 +124,28 @@ export class BountyResolver {
     })
   }
 
-  // get all bounties for a specific channel
+  // get all available bounties given that expiration date is in the future
+  @Query(() => [GetAvailableBountiesResult])
+  async getAvailableBounties(): Promise<GetAvailableBountiesResult[]> {
+    const em = await this.em()
+    return withHiddenEntities(em, async () => {
+      const bountiesResult: any = await em
+        .createQueryBuilder(Bounty, 'bounty')
+        .where('bounty.expirationDate > NOW()')
+        .getMany()
+
+      return bountiesResult.map((bounty: any) => ({
+        maxPayoutUSD: bounty.maxPayoutUSD,
+        title: bounty.title,
+        description: bounty.description,
+        coverImageLink: bounty.coverImageLink,
+        expirationDate: bounty.expirationDate,
+        talkingPointsText: bounty.talkingPointsText,
+      }))
+    })
+  }
+
+  // get all activated bounties for a specific channel
   @Query(() => [GetActivatedBountiesForChannel])
   @UseMiddleware(AccountOnly)
   async getBountiesForChannel(

@@ -24,7 +24,7 @@ export class AddBountyArgs {
 
 @ObjectType()
 export class BountyOperationResult {
-  @Field(() => [String], { nullable: false })
+  @Field(() => String, { nullable: false })
   bountyId!: string
 }
 
@@ -68,4 +68,25 @@ export class GetActivatedBountiesForChannel {
 
   @Field(() => Boolean, { nullable: false })
   completed: boolean
+}
+
+@ObjectType()
+export class GetAvailableBountiesResult {
+  @Field(() => Int, { nullable: false })
+  maxPayoutUSD: number
+
+  @Field(() => String, { nullable: false })
+  title: string
+
+  @Field(() => String, { nullable: false })
+  description: string
+
+  @Field(() => String, { nullable: true })
+  coverImageLink: string
+
+  @Field(() => DateTime, { nullable: false })
+  expirationDate: Date
+
+  @Field(() => String, { nullable: true })
+  talkingPointsText: string
 }
